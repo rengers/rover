@@ -14,38 +14,6 @@
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="QLabel" name="original">
-    <property name="geometry">
-     <rect>
-      <x>236</x>
-      <y>56</y>
-      <width>640</width>
-      <height>480</height>
-     </rect>
-    </property>
-    <property name="autoFillBackground">
-     <bool>true</bool>
-    </property>
-    <property name="text">
-     <string/>
-    </property>
-   </widget>
-   <widget class="QLabel" name="processed">
-    <property name="geometry">
-     <rect>
-      <x>876</x>
-      <y>56</y>
-      <width>640</width>
-      <height>480</height>
-     </rect>
-    </property>
-    <property name="autoFillBackground">
-     <bool>true</bool>
-    </property>
-    <property name="text">
-     <string/>
-    </property>
-   </widget>
    <widget class="QPlainTextEdit" name="info">
     <property name="geometry">
      <rect>
@@ -143,6 +111,64 @@
       <height>461</height>
      </rect>
     </property>
+   </widget>
+   <widget class="QGroupBox" name="groupBox_3">
+    <property name="geometry">
+     <rect>
+      <x>224</x>
+      <y>50</y>
+      <width>650</width>
+      <height>500</height>
+     </rect>
+    </property>
+    <property name="title">
+     <string>Original</string>
+    </property>
+    <widget class="QLabel" name="original">
+     <property name="geometry">
+      <rect>
+       <x>5</x>
+       <y>15</y>
+       <width>640</width>
+       <height>480</height>
+      </rect>
+     </property>
+     <property name="autoFillBackground">
+      <bool>true</bool>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QGroupBox" name="groupBox_4">
+    <property name="geometry">
+     <rect>
+      <x>884</x>
+      <y>50</y>
+      <width>650</width>
+      <height>500</height>
+     </rect>
+    </property>
+    <property name="title">
+     <string>Processed</string>
+    </property>
+    <widget class="QLabel" name="processed">
+     <property name="geometry">
+      <rect>
+       <x>5</x>
+       <y>15</y>
+       <width>640</width>
+       <height>480</height>
+      </rect>
+     </property>
+     <property name="autoFillBackground">
+      <bool>true</bool>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">

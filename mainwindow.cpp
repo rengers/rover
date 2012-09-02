@@ -45,7 +45,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
     QString sPath = QDir::currentPath();
     QModelIndex idx = fileModel->setRootPath(sPath);
-    qDebug() << sPath;
 
     ui->sourceDir->setModel(fileModel);
     ui->sourceDir->setRootIndex(idx);
@@ -111,6 +110,9 @@ void MainWindow::processFrameAndUpdate() {
     ui->original->setPixmap(QPixmap::fromImage(qimgOriginal));
     ui->processed->setPixmap(QPixmap::fromImage(qimgProcessed));
 
+    if(mode == IMAGE_FILE)
+        qtimer->stop();
+
 }
 
 void MainWindow::on_pauseOrResume_clicked()
@@ -135,7 +137,7 @@ void MainWindow::on_sourceDir_clicked(const QModelIndex &index)
 {
     // Update image
     img = fileModel->fileInfo(index).absoluteFilePath();
-    qDebug() << img << " was selected";
+    processFrameAndUpdate();
 }
 
 void MainWindow::on_sourceSelect_currentIndexChanged(int index)
@@ -143,9 +145,14 @@ void MainWindow::on_sourceSelect_currentIndexChanged(int index)
     mode = index;
 
     if(mode == WEBCAM)
-       ui->sourceDir->hide();
-
+    {
+        ui->sourceDir->hide();
+    }
     if(mode == IMAGE_FILE)
-       ui->sourceDir->show();
+    {
+        ui->sourceDir->show();
+    }
 
+    // Activate the timer to start processing
+    qtimer->start();
 }
