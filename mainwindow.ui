@@ -17,7 +17,7 @@
    <widget class="QLabel" name="original">
     <property name="geometry">
      <rect>
-      <x>20</x>
+      <x>236</x>
       <y>56</y>
       <width>640</width>
       <height>480</height>
@@ -33,7 +33,7 @@
    <widget class="QLabel" name="processed">
     <property name="geometry">
      <rect>
-      <x>660</x>
+      <x>876</x>
       <y>56</y>
       <width>640</width>
       <height>480</height>
@@ -122,7 +122,27 @@
        <height>25</height>
       </rect>
      </property>
+     <item>
+      <property name="text">
+       <string>Webcam</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Image from file</string>
+      </property>
+     </item>
     </widget>
+   </widget>
+   <widget class="QListView" name="sourceDir">
+    <property name="geometry">
+     <rect>
+      <x>24</x>
+      <y>68</y>
+      <width>193</width>
+      <height>461</height>
+     </rect>
+    </property>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">

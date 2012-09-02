@@ -36,6 +36,23 @@ MainWindow::MainWindow(QWidget *parent) :
     textEdit = new QTextEdit;
     //setCentralWidget(textEdit);
 
+    // Create the input file chooser
+    dirModel = new QFileSystemModel(this);
+    fileModel = new QFileSystemModel(this);
+    fileModel->setFilter(QDir::NoDotAndDotDot | QDir::Files);
+    fileModel->setNameFilters(QStringList("*.jpg"));
+    fileModel->setNameFilterDisables(false);
+
+    QString sPath = QDir::currentPath();
+    QModelIndex idx = fileModel->setRootPath(sPath);
+    qDebug() << sPath;
+
+    ui->sourceDir->setModel(fileModel);
+    ui->sourceDir->setRootIndex(idx);
+    ui->sourceDir->hide();
+
+   // ui->sourceDir->setEditTriggers(QAbstractItemView::AnyKeyPressed | QAbstractItemView::DoubleClicked);
+
     setWindowTitle(tr("Rover"));
 
     // Set up timer to control update
@@ -69,10 +86,18 @@ void MainWindow::open()
 
 
 void MainWindow::processFrameAndUpdate() {
-    capWebcam.read(matOriginal);
+
+    // Check if we are geting input from webcam or file
+    if( ui->sourceSelect->currentIndex() == 0)
+        capWebcam.read(matOriginal);
+
+    else
+       matOriginal = cv::imread(img.toStdString());
 
     if(matOriginal.empty() == true)
         return;
+
+    cv::resize(matOriginal, matOriginal, cv::Size(640, 480));
 
     //cv::GaussianBlur(matOriginal, matProcessed, cv::Size(9,9), 1.5);
     cv::medianBlur(matOriginal, matProcessed, 9);
@@ -104,4 +129,23 @@ void MainWindow::on_pauseOrResume_clicked()
 void MainWindow::on_quit_clicked()
 {
     exit(0);
+}
+
+void MainWindow::on_sourceDir_clicked(const QModelIndex &index)
+{
+    // Update image
+    img = fileModel->fileInfo(index).absoluteFilePath();
+    qDebug() << img << " was selected";
+}
+
+void MainWindow::on_sourceSelect_currentIndexChanged(int index)
+{
+    mode = index;
+
+    if(mode == WEBCAM)
+       ui->sourceDir->hide();
+
+    if(mode == IMAGE_FILE)
+       ui->sourceDir->show();
+
 }

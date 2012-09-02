@@ -12,11 +12,16 @@ namespace Ui {
 class MainWindow;
 }
 
+// Modes
+const int WEBCAM = 0;
+const int IMAGE_FILE = 1;
+
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
     
 public:
+
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
 
@@ -28,6 +33,10 @@ private slots:
     void on_quit_clicked();
 
     void open();
+
+    void on_sourceDir_clicked(const QModelIndex &index);
+
+    void on_sourceSelect_currentIndexChanged(int index);
 
 public slots:
     void processFrameAndUpdate();
@@ -43,6 +52,14 @@ private:
     // Images stored in QImage object
     QImage qimgOriginal;
     QImage qimgProcessed;
+
+    // Holds the filename of the image to be processed
+    QString img;
+
+    int mode;
+
+    QFileSystemModel *dirModel;
+    QFileSystemModel *fileModel;
 
     // QT menu related
     QTextEdit *textEdit;
