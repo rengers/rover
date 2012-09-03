@@ -99,10 +99,18 @@ void MainWindow::processFrameAndUpdate() {
     cv::resize(matOriginal, matOriginal, cv::Size(640, 480));
 
     //cv::GaussianBlur(matOriginal, matProcessed, cv::Size(9,9), 1.5);
-    cv::medianBlur(matOriginal, matProcessed, 9);
+
+    // Make a copy of the matrix to process
+    matOriginal.copyTo(matProcessed);
+
+    if(blur_on)
+        cv::medianBlur(matOriginal, matProcessed, 3);
 
     cv::cvtColor(matOriginal, matOriginal, CV_BGR2RGB);
-    cv::cvtColor(matProcessed, matProcessed, CV_BGR2RGB);
+    //cv::cvtColor(matProcessed, matProcessed, CV_BGR2RGB);
+
+    matProcessed = locatePlate(matProcessed);
+    cv::cvtColor(matProcessed, matProcessed, CV_GRAY2RGB);
 
     QImage qimgOriginal((uchar*)matOriginal.data, matOriginal.cols, matOriginal.rows, matOriginal.step, QImage::Format_RGB888);
     QImage qimgProcessed((uchar*)matProcessed.data, matProcessed.cols, matProcessed.rows, matProcessed.step, QImage::Format_RGB888);
@@ -113,6 +121,32 @@ void MainWindow::processFrameAndUpdate() {
     if(mode == IMAGE_FILE)
         qtimer->stop();
 
+}
+
+// This method will locate a possible plate in a image
+//
+// Input - cv::Mat image to be processed
+// Output - cv::Mat image of the ROI
+cv::Mat MainWindow::locatePlate(cv::Mat src) {
+
+    cv::Mat dest;
+    cv::cvtColor(src, src, CV_RGB2GRAY);
+
+    cv::CascadeClassifier plateLocator;
+    plateLocator.load("Numberplate.xml");
+
+    double scale = 1.1;
+
+    std::vector<cv::Rect> plates;
+    plateLocator.detectMultiScale(src, plates, scale, 3, cv::CASCADE_DO_CANNY_PRUNING, cv::Size(90, 20));
+
+    cv::Rect *r;
+    for(int i = 0; i < (int)plates.size(); i++) {
+        r = &(plates[i]);
+        cv::rectangle(src, *r, cv::Scalar(255, 50, 50));
+    }
+
+    return src;
 }
 
 void MainWindow::on_pauseOrResume_clicked()
@@ -155,4 +189,12 @@ void MainWindow::on_sourceSelect_currentIndexChanged(int index)
 
     // Activate the timer to start processing
     qtimer->start();
+}
+
+void MainWindow::on_checkBox_stateChanged(int arg1)
+{
+   blur_on = arg1;
+
+   // Activate the timer to start processing
+   qtimer->start();
 }

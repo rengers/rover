@@ -8,6 +8,11 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 
+// Needed for the cascade classifier libraries
+#include <opencv2/objdetect/objdetect.hpp>
+
+#include <vector>
+
 namespace Ui {
 class MainWindow;
 }
@@ -16,10 +21,12 @@ class MainWindow;
 const int WEBCAM = 0;
 const int IMAGE_FILE = 1;
 
+
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
     
+public: cv::Mat locatePlate(cv::Mat src);
 public:
 
     explicit MainWindow(QWidget *parent = 0);
@@ -37,6 +44,8 @@ private slots:
     void on_sourceDir_clicked(const QModelIndex &index);
 
     void on_sourceSelect_currentIndexChanged(int index);
+
+    void on_checkBox_stateChanged(int arg1);
 
 public slots:
     void processFrameAndUpdate();
@@ -56,7 +65,11 @@ private:
     // Holds the filename of the image to be processed
     QString img;
 
+    // Input mode
     int mode;
+
+    // Median filter blur option
+    int blur_on;
 
     QFileSystemModel *dirModel;
     QFileSystemModel *fileModel;
