@@ -44,7 +44,7 @@ MainWindow::MainWindow(QWidget *parent) :
     fileModel->setNameFilterDisables(false);
 
     QString sPath = QDir::currentPath();
-    QModelIndex idx = fileModel->setRootPath(sPath);
+    QModelIndex idx = fileModel->setRootPath(sPath.append("/img"));
 
     ui->sourceDir->setModel(fileModel);
     ui->sourceDir->setRootIndex(idx);
@@ -106,16 +106,19 @@ void MainWindow::processFrameAndUpdate() {
     if(blur_on)
         cv::medianBlur(matOriginal, matProcessed, 3);
 
-    cv::cvtColor(matOriginal, matOriginal, CV_BGR2RGB);
-    //cv::cvtColor(matProcessed, matProcessed, CV_BGR2RGB);
-
     matProcessed = locatePlate(matProcessed);
-    cv::cvtColor(matProcessed, matProcessed, CV_GRAY2RGB);
+    //cv::cvtColor(matProcessed, matProcessed, CV_GRAY2RGB);
+
+    cv::cvtColor(matOriginal, matOriginal, CV_BGR2RGB);
+    cv::cvtColor(matProcessed, matProcessed, CV_BGR2RGB);
 
     QImage qimgOriginal((uchar*)matOriginal.data, matOriginal.cols, matOriginal.rows, matOriginal.step, QImage::Format_RGB888);
     QImage qimgProcessed((uchar*)matProcessed.data, matProcessed.cols, matProcessed.rows, matProcessed.step, QImage::Format_RGB888);
 
-    ui->original->setPixmap(QPixmap::fromImage(qimgOriginal));
+    qimgOriginal = qimgOriginal.scaledToWidth(320);
+    qimgProcessed = qimgProcessed.scaledToWidth(320);
+
+    ui->original->setPixmap(QPixmap::fromImage(qimgOriginal).scaledToWidth(320));
     ui->processed->setPixmap(QPixmap::fromImage(qimgProcessed));
 
     if(mode == IMAGE_FILE)
@@ -130,7 +133,8 @@ void MainWindow::processFrameAndUpdate() {
 cv::Mat MainWindow::locatePlate(cv::Mat src) {
 
     cv::Mat dest;
-    cv::cvtColor(src, src, CV_RGB2GRAY);
+    cv::cvtColor(src, src, CV_RGB2BGR);
+    cv::cvtColor(src, dest, CV_BGR2GRAY);
 
     cv::CascadeClassifier plateLocator;
     plateLocator.load("Numberplate.xml");
@@ -138,14 +142,15 @@ cv::Mat MainWindow::locatePlate(cv::Mat src) {
     double scale = 1.1;
 
     std::vector<cv::Rect> plates;
-    plateLocator.detectMultiScale(src, plates, scale, 3, cv::CASCADE_DO_CANNY_PRUNING, cv::Size(90, 20));
+    plateLocator.detectMultiScale(dest, plates, scale, 3, cv::CASCADE_DO_CANNY_PRUNING, cv::Size(90, 20));
 
     cv::Rect *r;
     for(int i = 0; i < (int)plates.size(); i++) {
         r = &(plates[i]);
-        cv::rectangle(src, *r, cv::Scalar(255, 50, 50));
+        cv::rectangle(src, *r, cv::Scalar(255, 50, 50),3);
     }
 
+    cv::cvtColor(src, src, CV_BGR2RGB);
     return src;
 }
 
