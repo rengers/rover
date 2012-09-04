@@ -41,11 +41,13 @@ private slots:
 
     void open();
 
-    void on_sourceDir_clicked(const QModelIndex &index);
+    void on_sourceImage_clicked(const QModelIndex &index);
 
     void on_sourceSelect_currentIndexChanged(int index);
 
     void on_checkBox_stateChanged(int arg1);
+
+    void on_sourceImage_activated(const QModelIndex &index);
 
 public slots:
     void processFrameAndUpdate();

@@ -46,11 +46,11 @@ MainWindow::MainWindow(QWidget *parent) :
     QString sPath = QDir::currentPath();
     QModelIndex idx = fileModel->setRootPath(sPath.append("/img"));
 
-    ui->sourceDir->setModel(fileModel);
-    ui->sourceDir->setRootIndex(idx);
-    ui->sourceDir->hide();
+    ui->sourceImage->setModel(fileModel);
+    ui->sourceImage->setRootIndex(idx);
+    ui->sourceImage->hide();
 
-   // ui->sourceDir->setEditTriggers(QAbstractItemView::AnyKeyPressed | QAbstractItemView::DoubleClicked);
+   // ui->sourceImage->setEditTriggers(QAbstractItemView::AnyKeyPressed | QAbstractItemView::DoubleClicked);
 
     setWindowTitle(tr("Rover"));
 
@@ -115,10 +115,10 @@ void MainWindow::processFrameAndUpdate() {
     QImage qimgOriginal((uchar*)matOriginal.data, matOriginal.cols, matOriginal.rows, matOriginal.step, QImage::Format_RGB888);
     QImage qimgProcessed((uchar*)matProcessed.data, matProcessed.cols, matProcessed.rows, matProcessed.step, QImage::Format_RGB888);
 
-    qimgOriginal = qimgOriginal.scaledToWidth(320);
-    qimgProcessed = qimgProcessed.scaledToWidth(320);
+    //qimgOriginal = qimgOriginal.scaledToWidth(320);
+    //qimgProcessed = qimgProcessed.scaledToWidth(320);
 
-    ui->original->setPixmap(QPixmap::fromImage(qimgOriginal).scaledToWidth(320));
+    ui->original->setPixmap(QPixmap::fromImage(qimgOriginal));
     ui->processed->setPixmap(QPixmap::fromImage(qimgProcessed));
 
     if(mode == IMAGE_FILE)
@@ -172,7 +172,7 @@ void MainWindow::on_quit_clicked()
     exit(0);
 }
 
-void MainWindow::on_sourceDir_clicked(const QModelIndex &index)
+void MainWindow::on_sourceImage_clicked(const QModelIndex &index)
 {
     // Update image
     img = fileModel->fileInfo(index).absoluteFilePath();
@@ -185,11 +185,11 @@ void MainWindow::on_sourceSelect_currentIndexChanged(int index)
 
     if(mode == WEBCAM)
     {
-        ui->sourceDir->hide();
+        ui->sourceImage->hide();
     }
     if(mode == IMAGE_FILE)
     {
-        ui->sourceDir->show();
+        ui->sourceImage->show();
     }
 
     // Activate the timer to start processing
@@ -203,3 +203,27 @@ void MainWindow::on_checkBox_stateChanged(int arg1)
    // Activate the timer to start processing
    qtimer->start();
 }
+
+void MainWindow::on_sourceImage_activated(const QModelIndex &index)
+{
+    // Update image
+    img = fileModel->fileInfo(index).absoluteFilePath();
+    processFrameAndUpdate();
+}
+
+class MediaBrowserQListView : public QListView
+{
+public:
+    MediaBrowserQListView(QWidget * parent) : QListView(parent) {}
+protected:
+    void keyPressEvent(QKeyEvent *event)
+    {
+        QModelIndex oldIdx = currentIndex();
+        QListView::keyPressEvent(event);
+        QModelIndex newIdx = currentIndex();
+        if(oldIdx.row() != newIdx.row())
+        {
+            emit clicked(newIdx);
+        }
+    }
+};
