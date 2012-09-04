@@ -11,6 +11,9 @@
 // Needed for the cascade classifier libraries
 #include <opencv2/objdetect/objdetect.hpp>
 
+// opencv C libraries
+#include <opencv/cv.h>
+
 #include <vector>
 
 namespace Ui {
@@ -85,6 +88,8 @@ private:
 
     QMenu *fileMenu;
 
+    // Watcher for plate text file
+    QFileSystemWatcher *plate_text_file_watcher;
     // Timer to control update
     QTimer* qtimer;
 
