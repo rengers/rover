@@ -54,11 +54,19 @@ MainWindow::MainWindow(QWidget *parent) :
 
     setWindowTitle(tr("Rover"));
 
+
+    // Watcher to track plate txt file
+    QFileSystemWatcher *plate_text_file_watcher = new QFileSystemWatcher();
+    plate_text_file_watcher->addPath(QDir::currentPath());
+    qDebug() <<QDir::currentPath();
+    QObject::connect(plate_text_file_watcher, SIGNAL(directoryChanged(QString)), this, SLOT(updateInfo()));
+
     // Set up timer to control update
     qtimer = new QTimer(this);
     connect(qtimer, SIGNAL(timeout()), this, SLOT(processFrameAndUpdate()));
     qtimer->start(50);
 
+    //QObject::connect(qtimer, SIGNAL(timeout()), this, SLOT(updateInfo()));
 }
 
 MainWindow::~MainWindow()
@@ -147,11 +155,30 @@ cv::Mat MainWindow::locatePlate(cv::Mat src) {
     cv::Rect *r;
     for(int i = 0; i < (int)plates.size(); i++) {
         r = &(plates[i]);
+
+        // Write plate to file plate.jpg
+        cv::imwrite("plate.jpg", src(*r));
+        // Decode with tesseract
+        QFile::remove("plate.txt");
+        popen("tesseract plate.jpg plate -psm 1 2>&1 /dev/null", "r");
+
         cv::rectangle(src, *r, cv::Scalar(255, 50, 50),3);
     }
 
+
     cv::cvtColor(src, src, CV_BGR2RGB);
     return src;
+}
+
+void MainWindow::updateInfo()
+{
+    // Read text file plate.txt and display
+    QFile file("plate.txt");
+    file.open(QIODevice::ReadOnly);
+    QTextStream stream(&file);
+    ui->info->setPlainText(stream.readLine());
+    file.close();
+
 }
 
 void MainWindow::on_pauseOrResume_clicked()

@@ -51,6 +51,7 @@ private slots:
 
 public slots:
     void processFrameAndUpdate();
+    void updateInfo();
 
 private:
     Ui::MainWindow *ui;
