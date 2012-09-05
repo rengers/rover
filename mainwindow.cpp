@@ -54,13 +54,10 @@ MainWindow::MainWindow(QWidget *parent) :
 
     setWindowTitle(tr("Rover"));
 
-
-    // Watcher to track plate txt file
-    plate_text_file_watcher = new QFileSystemWatcher();
-    plate_text_file_watcher->addPath(QDir::currentPath());
-
+    // QProcess for running the tesseract OCR
+    ocr = new QProcess(this);
     qDebug() <<QDir::currentPath();
-    QObject::connect(plate_text_file_watcher, SIGNAL(directoryChanged(QString)), this, SLOT(updateInfo()));
+    QObject::connect(ocr, SIGNAL(finished(int)), this, SLOT(updateInfo()));     // Update after ocr done
 
     // Set up timer to control update
     qtimer = new QTimer(this);
@@ -272,12 +269,9 @@ cv::Mat MainWindow::locatePlate(cv::Mat src) {
 
         // Write plate to file plate.jpg
         cv::imwrite("plate.jpg", tempProcessed);
-        // Decode with tesseracti
-        plate_text_file_watcher->removePath(QDir::currentPath());
-        QFile::remove("plate.txt");
+        // Decode with tesseract
         ui->info->setPlainText("Reading plate...");
-        plate_text_file_watcher->addPath(QDir::currentPath());
-        popen("tesseract plate.jpg plate -psm 3 nobatch numberplates 2>&1 /dev/null", "r");
+        ocr->start("tesseract plate.jpg plate -psm 3 nobatch numberplates 2>&1 /dev/null");
 
         cv::rectangle(src, *r, cv::Scalar(255, 50, 50),3);
     }

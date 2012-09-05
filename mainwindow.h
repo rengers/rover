@@ -88,8 +88,9 @@ private:
 
     QMenu *fileMenu;
 
-    // Watcher for plate text file
-    QFileSystemWatcher *plate_text_file_watcher;
+    // QProcess for tesseract
+    QProcess* ocr;
+
     // Timer to control update
     QTimer* qtimer;
 
