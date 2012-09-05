@@ -135,8 +135,7 @@ void MainWindow::processFrameAndUpdate() {
 
 }
 
-
-void drawHist(cv::Mat src, QString s){
+cv::Mat drawHist(cv::Mat src, QString s){
 IplImage temp = src;
 IplImage* image = &temp;
 CvHistogram* hist;
@@ -161,12 +160,7 @@ IplImage* imgHistogram = 0;
          //grayscale version of the original picture
          IplImage* gray = cvCreateImage( cvGetSize(image), 8, 1 );
        //  cvCvtColor( image, gray, CV_BGR2GRAY );
-    cvCopy(image, gray);
-
-         //Create 3 windows to show the results
-     cvNamedWindow(QString(s + "original").toStdString().c_str(),1);
-     //    cvNamedWindow("gray",1);
-         cvNamedWindow(QString(s + "histogram").toStdString().c_str(),1);
+         cvCopy(image, gray);
 
          //planes to obtain the histogram, in this case just one
          IplImage* planes[] = { gray };
@@ -213,8 +207,9 @@ int bestThreshold=0;
          }
 //cvLine(imgHistogram,cvPoint(bestThreshold,50), cvPoint(bestThreshold,50-max), CV_RGB(200,50,75),3);
 
-     cvShowImage(QString(s + "original").toStdString().c_str(), image );
-     cvShowImage(QString(s + "histogram").toStdString().c_str() , imgHistogram );
+         return cv::Mat(imgHistogram);
+//     cvShowImage(QString(s + "original").toStdString().c_str(), image );
+//     cvShowImage(QString(s + "histogram").toStdString().c_str() , imgHistogram );
 
 }
 
@@ -240,15 +235,43 @@ cv::Mat MainWindow::locatePlate(cv::Mat src) {
     for(int i = 0; i < (int)plates.size(); i++) {
         r = &(plates[i]);
 
-        // Write plate to file plate.jpg
         cv::Mat temp;
+        cv::Mat tempProcessed;
+        cv::cvtColor(src(*r), temp, CV_BGR2GRAY);
         cv::cvtColor(src(*r), temp, CV_BGR2GRAY);
 
-        drawHist(temp, "Pre");
-        cv::threshold(temp, temp, 80, 255, 0);
-        drawHist(temp, "Post");
+        cv::Mat histogram = drawHist(temp, "Pre");
+        cv::threshold(temp, tempProcessed, 80, 255, 0);
+        cv::Mat histogramProcessed = drawHist(tempProcessed, "Post");
 
-        cv::imwrite("plate.jpg", temp);
+        // Display the histograms on the screen
+        cv::cvtColor(histogram, histogram, CV_GRAY2RGB);
+        cv::cvtColor(histogramProcessed, histogramProcessed, CV_GRAY2RGB);
+
+        cv::cvtColor(temp, temp, CV_GRAY2RGB);
+        cv::cvtColor(tempProcessed, tempProcessed, CV_GRAY2RGB);
+
+        QImage qimgHist((uchar*)histogram.data, histogram.cols, histogram.rows, histogram.step, QImage::Format_RGB888);
+        QImage qimgHistProcessed((uchar*)histogramProcessed.data, histogramProcessed.cols, histogramProcessed.rows, histogramProcessed.step, QImage::Format_RGB888);
+        QImage qimgPlate((uchar*)temp.data, temp.cols, temp.rows, temp.step, QImage::Format_RGB888);
+        QImage qimgPlateProcessed((uchar*)tempProcessed.data, tempProcessed.cols, tempProcessed.rows, tempProcessed.step, QImage::Format_RGB888);
+
+
+
+        //qimgHist = qimgHist.scaledToWidth(320);
+        //qimgHistProcessed = qimgHistProcessed.scaledToWidth(320);
+
+        ui->histogramOriginal->setPixmap(QPixmap::fromImage(qimgHist));
+        ui->histogramProcessed->setPixmap(QPixmap::fromImage(qimgHistProcessed));
+
+        ui->plate->setPixmap(QPixmap::fromImage(qimgPlate));
+        ui->plateProcessed->setPixmap(QPixmap::fromImage(qimgPlateProcessed));
+
+        // *************************************************************8
+
+
+        // Write plate to file plate.jpg
+        cv::imwrite("plate.jpg", tempProcessed);
         // Decode with tesseracti
         plate_text_file_watcher->removePath(QDir::currentPath());
         QFile::remove("plate.txt");
