@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1076</width>
-    <height>430</height>
+    <width>1085</width>
+    <height>517</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -15,143 +15,194 @@
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout">
-    <item row="16" column="0">
-     <widget class="QGroupBox" name="groupBox_2">
-      <property name="title">
-       <string>Source select</string>
+    <item row="0" column="0">
+     <widget class="QFrame" name="frame">
+      <property name="frameShape">
+       <enum>QFrame::NoFrame</enum>
       </property>
-      <widget class="QComboBox" name="sourceSelect">
-       <property name="geometry">
-        <rect>
-         <x>12</x>
-         <y>16</y>
-         <width>133</width>
-         <height>25</height>
-        </rect>
-       </property>
+      <property name="frameShadow">
+       <enum>QFrame::Raised</enum>
+      </property>
+      <property name="lineWidth">
+       <number>0</number>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout">
        <item>
-        <property name="text">
-         <string>Webcam</string>
-        </property>
+        <widget class="QGroupBox" name="groupBox_2">
+         <property name="title">
+          <string>Source select</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_4">
+          <item row="0" column="0">
+           <widget class="QComboBox" name="sourceSelect">
+            <item>
+             <property name="text">
+              <string>Webcam</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Image from file</string>
+             </property>
+            </item>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QListView" name="sourceImage"/>
+          </item>
+         </layout>
+        </widget>
        </item>
        <item>
-        <property name="text">
-         <string>Image from file</string>
-        </property>
+        <widget class="QGroupBox" name="groupBox">
+         <property name="title">
+          <string>Controls</string>
+         </property>
+         <layout class="QHBoxLayout" name="horizontalLayout">
+          <item>
+           <widget class="QPushButton" name="quit">
+            <property name="text">
+             <string>Quit</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pauseOrResume">
+            <property name="text">
+             <string>Pause</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
        </item>
-      </widget>
-      <widget class="QListView" name="sourceImage">
-       <property name="geometry">
-        <rect>
-         <x>8</x>
-         <y>44</y>
-         <width>337</width>
-         <height>189</height>
-        </rect>
-       </property>
-      </widget>
+      </layout>
      </widget>
     </item>
-    <item row="17" column="0">
+    <item row="0" column="1">
+     <widget class="QFrame" name="previewFrame">
+      <property name="frameShape">
+       <enum>QFrame::NoFrame</enum>
+      </property>
+      <property name="frameShadow">
+       <enum>QFrame::Plain</enum>
+      </property>
+      <layout class="QGridLayout" name="gridLayout_5">
+       <item row="1" column="0">
+        <widget class="QGroupBox" name="groupBox_3">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="title">
+          <string>Input image</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_2">
+          <item row="2" column="0">
+           <widget class="QLabel" name="histogramOriginal">
+            <property name="text">
+             <string>Histogram</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="0">
+           <widget class="QLabel" name="original">
+            <property name="minimumSize">
+             <size>
+              <width>320</width>
+              <height>240</height>
+             </size>
+            </property>
+            <property name="autoFillBackground">
+             <bool>true</bool>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="plate">
+            <property name="text">
+             <string>Plate</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+         <zorder>original</zorder>
+         <zorder>original</zorder>
+         <zorder>original</zorder>
+         <zorder>histogramOriginal</zorder>
+         <zorder>plate</zorder>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QGroupBox" name="groupBox_4">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="title">
+          <string>Processed</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_3">
+          <item row="2" column="0">
+           <widget class="QLabel" name="histogramProcessed">
+            <property name="text">
+             <string>Histogram</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="0">
+           <widget class="QLabel" name="processed">
+            <property name="minimumSize">
+             <size>
+              <width>320</width>
+              <height>240</height>
+             </size>
+            </property>
+            <property name="autoFillBackground">
+             <bool>true</bool>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="plateProcessed">
+            <property name="text">
+             <string>Plate processed</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item row="1" column="0">
      <widget class="QGroupBox" name="groupBox_5">
       <property name="title">
        <string>Options</string>
       </property>
-      <widget class="QCheckBox" name="checkBox">
-       <property name="geometry">
-        <rect>
-         <x>8</x>
-         <y>20</y>
-         <width>105</width>
-         <height>25</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Median filter</string>
-       </property>
-      </widget>
+      <layout class="QVBoxLayout" name="verticalLayout_2">
+       <item>
+        <widget class="QCheckBox" name="checkBox">
+         <property name="text">
+          <string>Median filter</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </widget>
     </item>
-    <item row="17" column="1">
-     <widget class="QGroupBox" name="groupBox">
-      <property name="title">
-       <string>Controls</string>
-      </property>
-      <widget class="QPushButton" name="pauseOrResume">
-       <property name="geometry">
-        <rect>
-         <x>12</x>
-         <y>20</y>
-         <width>80</width>
-         <height>26</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Pause</string>
-       </property>
-      </widget>
-      <widget class="QPushButton" name="quit">
-       <property name="geometry">
-        <rect>
-         <x>12</x>
-         <y>52</y>
-         <width>80</width>
-         <height>26</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Quit</string>
-       </property>
-      </widget>
-     </widget>
-    </item>
-    <item row="16" column="1">
-     <widget class="QLabel" name="original">
-      <property name="minimumSize">
-       <size>
-        <width>320</width>
-        <height>240</height>
-       </size>
-      </property>
-      <property name="autoFillBackground">
-       <bool>true</bool>
-      </property>
-      <property name="text">
-       <string/>
-      </property>
-     </widget>
-    </item>
-    <item row="16" column="2">
-     <widget class="QLabel" name="processed">
-      <property name="minimumSize">
-       <size>
-        <width>320</width>
-        <height>240</height>
-       </size>
-      </property>
-      <property name="autoFillBackground">
-       <bool>true</bool>
-      </property>
-      <property name="text">
-       <string/>
-      </property>
-     </widget>
-    </item>
-    <item row="15" column="1">
-     <widget class="QGroupBox" name="groupBox_3">
-      <property name="title">
-       <string>Original</string>
-      </property>
-     </widget>
-    </item>
-    <item row="15" column="2">
-     <widget class="QGroupBox" name="groupBox_4">
-      <property name="title">
-       <string>Processed</string>
-      </property>
-     </widget>
-    </item>
-    <item row="17" column="2" alignment="Qt::AlignHCenter">
+    <item row="1" column="1">
      <widget class="QPlainTextEdit" name="info">
       <property name="autoFillBackground">
        <bool>true</bool>
@@ -168,8 +219,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1076</width>
-     <height>23</height>
+     <width>1085</width>
+     <height>26</height>
     </rect>
    </property>
   </widget>

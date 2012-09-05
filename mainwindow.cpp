@@ -124,8 +124,8 @@ void MainWindow::processFrameAndUpdate() {
     QImage qimgOriginal((uchar*)matOriginal.data, matOriginal.cols, matOriginal.rows, matOriginal.step, QImage::Format_RGB888);
     QImage qimgProcessed((uchar*)matProcessed.data, matProcessed.cols, matProcessed.rows, matProcessed.step, QImage::Format_RGB888);
 
-    //qimgOriginal = qimgOriginal.scaledToWidth(320);
-    //qimgProcessed = qimgProcessed.scaledToWidth(320);
+    qimgOriginal = qimgOriginal.scaledToWidth(320);
+    qimgProcessed = qimgProcessed.scaledToWidth(320);
 
     ui->original->setPixmap(QPixmap::fromImage(qimgOriginal));
     ui->processed->setPixmap(QPixmap::fromImage(qimgProcessed));
