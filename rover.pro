@@ -11,9 +11,11 @@ TEMPLATE = app
 
 
 SOURCES += main.cpp\
-        mainwindow.cpp
+        mainwindow.cpp \
+    mediabrowserqlistview.cpp
 
-HEADERS  += mainwindow.h
+HEADERS  += mainwindow.h \
+    mediabrowserqlistview.h
 
 INCLUDEPATH += /usr/inlude/
 #INCLUDEPATH += /usr/inlude/opencv2

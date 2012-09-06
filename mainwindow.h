@@ -4,6 +4,8 @@
 #include <QMainWindow>
 #include <QtGui>
 
+#include <mediabrowserqlistview.h>
+
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
@@ -87,6 +89,9 @@ private:
     QAction *exitAction;
 
     QMenu *fileMenu;
+
+    // File directory browser
+    MediaBrowserQListView* sourceImage;
 
     // QProcess for tesseract
     QProcess* ocr;

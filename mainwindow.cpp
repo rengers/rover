@@ -46,9 +46,15 @@ MainWindow::MainWindow(QWidget *parent) :
     QString sPath = QDir::currentPath();
     QModelIndex idx = fileModel->setRootPath(sPath.append("/img"));
 
-    ui->sourceImage->setModel(fileModel);
-    ui->sourceImage->setRootIndex(idx);
-    ui->sourceImage->hide();
+   QGridLayout* layout = new QGridLayout();
+   sourceImage = new MediaBrowserQListView(this);
+   QObject::connect(sourceImage, SIGNAL(clicked(QModelIndex)), this, SLOT(on_sourceImage_activated(QModelIndex)));     // Update after ocr done
+
+   layout->addWidget(sourceImage);
+   ui->listcontainer->setLayout(layout);
+    sourceImage->setModel(fileModel);
+    sourceImage->setRootIndex(idx);
+    sourceImage->hide();
 
    // ui->sourceImage->setEditTriggers(QAbstractItemView::AnyKeyPressed | QAbstractItemView::DoubleClicked);
 
@@ -328,11 +334,11 @@ void MainWindow::on_sourceSelect_currentIndexChanged(int index)
 
     if(mode == WEBCAM)
     {
-        ui->sourceImage->hide();
+        sourceImage->hide();
     }
     if(mode == IMAGE_FILE)
     {
-        ui->sourceImage->show();
+        sourceImage->show();
     }
 
     // Activate the timer to start processing
@@ -354,19 +360,4 @@ void MainWindow::on_sourceImage_activated(const QModelIndex &index)
     processFrameAndUpdate();
 }
 
-class MediaBrowserQListView : public QListView
-{
-public:
-    MediaBrowserQListView(QWidget * parent) : QListView(parent) {}
-protected:
-    void keyPressEvent(QKeyEvent *event)
-    {
-        QModelIndex oldIdx = currentIndex();
-        QListView::keyPressEvent(event);
-        QModelIndex newIdx = currentIndex();
-        if(oldIdx.row() != newIdx.row())
-        {
-            emit clicked(newIdx);
-        }
-    }
-};
+
