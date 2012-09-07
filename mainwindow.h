@@ -25,7 +25,7 @@ class MainWindow;
 // Modes
 const int WEBCAM = 0;
 const int IMAGE_FILE = 1;
-
+const int VIDEO_FILE = 2;
 
 class MainWindow : public QMainWindow
 {
@@ -46,13 +46,11 @@ private slots:
 
     void open();
 
-    void on_sourceImage_clicked(const QModelIndex &index);
-
     void on_sourceSelect_currentIndexChanged(int index);
 
     void on_checkBox_stateChanged(int arg1);
 
-    void on_sourceImage_activated(const QModelIndex &index);
+    void sourceImageChanged(const QModelIndex &index);
 
 public slots:
     void processFrameAndUpdate();
@@ -92,6 +90,10 @@ private:
 
     // File directory browser
     MediaBrowserQListView* sourceImage;
+
+    // Extension for file types we are interested in
+    QStringList image_ext;
+    QStringList video_ext;
 
     // QProcess for tesseract
     QProcess* ocr;

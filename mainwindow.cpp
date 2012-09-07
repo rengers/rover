@@ -40,23 +40,26 @@ MainWindow::MainWindow(QWidget *parent) :
     dirModel = new QFileSystemModel(this);
     fileModel = new QFileSystemModel(this);
     fileModel->setFilter(QDir::NoDotAndDotDot | QDir::Files);
-    fileModel->setNameFilters(QStringList("*.jpg"));
+
+    image_ext << "*.jpg" << "*.png";
+    video_ext << "*.avi" << "*.mpg";
+    fileModel->setNameFilters(image_ext);
     fileModel->setNameFilterDisables(false);
 
     QString sPath = QDir::currentPath();
     QModelIndex idx = fileModel->setRootPath(sPath.append("/img"));
 
-   QGridLayout* layout = new QGridLayout();
-   sourceImage = new MediaBrowserQListView(this);
-   QObject::connect(sourceImage, SIGNAL(clicked(QModelIndex)), this, SLOT(on_sourceImage_activated(QModelIndex)));     // Update after ocr done
+    QGridLayout* layout = new QGridLayout();
+    sourceImage = new MediaBrowserQListView(this);
+    QObject::connect(sourceImage, SIGNAL(clicked(QModelIndex)), this, SLOT(sourceImageChanged(QModelIndex)));     // Update after ocr done
 
-   layout->addWidget(sourceImage);
-   ui->listcontainer->setLayout(layout);
+    layout->addWidget(sourceImage);
+    ui->listcontainer->setLayout(layout);
     sourceImage->setModel(fileModel);
     sourceImage->setRootIndex(idx);
     sourceImage->hide();
 
-   // ui->sourceImage->setEditTriggers(QAbstractItemView::AnyKeyPressed | QAbstractItemView::DoubleClicked);
+    // ui->sourceImage->setEditTriggers(QAbstractItemView::AnyKeyPressed | QAbstractItemView::DoubleClicked);
 
     setWindowTitle(tr("Rover"));
 
@@ -98,12 +101,25 @@ void MainWindow::open()
 
 void MainWindow::processFrameAndUpdate() {
 
-    // Check if we are geting input from webcam or file
-    if( ui->sourceSelect->currentIndex() == 0)
-        capWebcam.read(matOriginal);
+    // First check what mode we are to get the input
 
-    else
-       matOriginal = cv::imread(img.toStdString());
+    // Check if we are geting input from webcam or file
+    if( mode == WEBCAM)
+    {
+        capWebcam.read(matOriginal);
+    }
+
+    // If a video files is selected then play it
+    else if( mode == VIDEO_FILE)
+    {
+        capWebcam.read(matOriginal);
+    }
+
+    // Otherwise we have an image
+    else if( mode == IMAGE_FILE )
+    {
+        matOriginal = cv::imread(img.toStdString());
+    }
 
     if(matOriginal.empty() == true)
         return;
@@ -321,26 +337,26 @@ void MainWindow::on_quit_clicked()
     exit(0);
 }
 
-void MainWindow::on_sourceImage_clicked(const QModelIndex &index)
-{
-    // Update image
-    img = fileModel->fileInfo(index).absoluteFilePath();
-    processFrameAndUpdate();
-}
-
 void MainWindow::on_sourceSelect_currentIndexChanged(int index)
 {
     mode = index;
 
     if(mode == WEBCAM)
     {
+        capWebcam.open(0);
         sourceImage->hide();
     }
     if(mode == IMAGE_FILE)
     {
+        fileModel->setNameFilters(image_ext);
         sourceImage->show();
     }
 
+    if(mode == VIDEO_FILE)
+    {
+        fileModel->setNameFilters(video_ext);
+        sourceImage->show();
+    }
     // Activate the timer to start processing
     qtimer->start();
 }
@@ -353,10 +369,17 @@ void MainWindow::on_checkBox_stateChanged(int arg1)
    qtimer->start();
 }
 
-void MainWindow::on_sourceImage_activated(const QModelIndex &index)
+void MainWindow::sourceImageChanged(const QModelIndex &index)
 {
-    // Update image
+    // Get the image or video
     img = fileModel->fileInfo(index).absoluteFilePath();
+
+    // If the source is a video file
+    if(img.endsWith("avi"))
+    {
+        capWebcam.open(img.toStdString());
+        qtimer->start();
+    }
     processFrameAndUpdate();
 }
 

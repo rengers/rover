@@ -160,6 +160,11 @@
               <string>Image from file</string>
              </property>
             </item>
+            <item>
+             <property name="text">
+              <string>Video from file</string>
+             </property>
+            </item>
            </widget>
           </item>
           <item row="1" column="0">
