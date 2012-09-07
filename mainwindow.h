@@ -23,9 +23,9 @@ class MainWindow;
 }
 
 // Modes
-const int WEBCAM = 0;
-const int IMAGE_FILE = 1;
-const int VIDEO_FILE = 2;
+const int IMAGE_FILE = 0;
+const int VIDEO_FILE = 1;
+const int WEBCAM = 2;
 
 class MainWindow : public QMainWindow
 {
@@ -52,6 +52,8 @@ private slots:
 
     void sourceImageChanged(const QModelIndex &index);
 
+    void resetWebcam();
+
 public slots:
     void processFrameAndUpdate();
     void updateInfo();
@@ -61,6 +63,7 @@ private:
 
     // OpenCV objects
     cv::VideoCapture capWebcam;
+    cv::VideoCapture capVideo;
     cv::Mat matOriginal;
     cv::Mat matProcessed;
 

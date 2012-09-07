@@ -152,17 +152,17 @@
            <widget class="QComboBox" name="sourceSelect">
             <item>
              <property name="text">
-              <string>Webcam</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
               <string>Image from file</string>
              </property>
             </item>
             <item>
              <property name="text">
               <string>Video from file</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Webcam</string>
              </property>
             </item>
            </widget>

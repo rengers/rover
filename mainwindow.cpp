@@ -3,6 +3,7 @@
 
 #include <QtCore>
 
+
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
@@ -12,15 +13,7 @@ MainWindow::MainWindow(QWidget *parent) :
     setWindowIcon(QIcon("web.png"));
 
     // Set up webcam
-    capWebcam.open(0);
-    capWebcam.set(CV_CAP_PROP_FRAME_WIDTH, 320);
-    capWebcam.set(CV_CAP_PROP_FRAME_HEIGHT, 240);
-
-    // Connect to webcam
-    if(capWebcam.isOpened() == false) {
-        ui->info->appendPlainText("Error: cannot connect to webcam");
-        return;
-    }
+    resetWebcam();
 
     // Set up QT menu and UI
     openAction = new QAction(tr("&Open"), this);
@@ -57,7 +50,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->listcontainer->setLayout(layout);
     sourceImage->setModel(fileModel);
     sourceImage->setRootIndex(idx);
-    sourceImage->hide();
+    //sourceImage->hide();
 
     // ui->sourceImage->setEditTriggers(QAbstractItemView::AnyKeyPressed | QAbstractItemView::DoubleClicked);
 
@@ -71,7 +64,13 @@ MainWindow::MainWindow(QWidget *parent) :
     // Set up timer to control update
     qtimer = new QTimer(this);
     connect(qtimer, SIGNAL(timeout()), this, SLOT(processFrameAndUpdate()));
-    qtimer->start(500);
+    qtimer->setInterval(500);
+
+    // Start in image mode
+    mode = IMAGE_FILE;
+
+    // Start the main process
+    qtimer->start();
 
     //QObject::connect(qtimer, SIGNAL(timeout()), this, SLOT(updateInfo()));
 }
@@ -112,7 +111,7 @@ void MainWindow::processFrameAndUpdate() {
     // If a video files is selected then play it
     else if( mode == VIDEO_FILE)
     {
-        capWebcam.read(matOriginal);
+        capVideo.read(matOriginal);
     }
 
     // Otherwise we have an image
@@ -149,10 +148,30 @@ void MainWindow::processFrameAndUpdate() {
     ui->original->setPixmap(QPixmap::fromImage(qimgOriginal));
     ui->processed->setPixmap(QPixmap::fromImage(qimgProcessed));
 
+    // If we are only processing a static image then we can stop
     if(mode == IMAGE_FILE)
         qtimer->stop();
 
 }
+
+// Method to reset the feed from the webcam
+void MainWindow::resetWebcam()
+{
+    if(capWebcam.isOpened() == true)
+        capWebcam.release();
+
+    // Set up webcam
+    capWebcam.open(CV_CAP_ANY);
+    capWebcam.set(CV_CAP_PROP_FRAME_WIDTH, 320);
+    capWebcam.set(CV_CAP_PROP_FRAME_HEIGHT, 240);
+
+    // Connect to webcam
+    if(capWebcam.isOpened() == false) {
+        ui->info->appendPlainText("Error: cannot connect to webcam");
+        return;
+    }
+}
+
 
 cv::Mat drawHist(cv::Mat src, QString s){
 IplImage temp = src;
@@ -238,6 +257,13 @@ int bestThreshold=0;
 // Output - cv::Mat image of the ROI
 cv::Mat MainWindow::locatePlate(cv::Mat src) {
 
+    // Rest old displayed images
+    ui->histogramOriginal->clear();
+    ui->histogramProcessed->clear();
+
+    ui->plate->clear();
+    ui->plateProcessed->clear();
+
     cv::Mat dest;
     cv::cvtColor(src, src, CV_RGB2BGR);
     cv::cvtColor(src, dest, CV_BGR2GRAY);
@@ -293,7 +319,7 @@ cv::Mat MainWindow::locatePlate(cv::Mat src) {
         cv::imwrite("plate.jpg", tempProcessed);
         // Decode with tesseract
         ui->info->setPlainText("Reading plate...");
-        ocr->start("tesseract plate.jpg plate -psm 3 nobatch numberplates 2>&1 /dev/null");
+        ocr->start("tesseract plate.jpg plate -psm 3 2>&1 /dev/null");
 
         cv::rectangle(src, *r, cv::Scalar(255, 50, 50),3);
     }
@@ -343,7 +369,7 @@ void MainWindow::on_sourceSelect_currentIndexChanged(int index)
 
     if(mode == WEBCAM)
     {
-        capWebcam.open(0);
+        //resetWebcam();
         sourceImage->hide();
     }
     if(mode == IMAGE_FILE)
@@ -354,9 +380,11 @@ void MainWindow::on_sourceSelect_currentIndexChanged(int index)
 
     if(mode == VIDEO_FILE)
     {
+        capVideo.release();     // Release any previous video file
         fileModel->setNameFilters(video_ext);
         sourceImage->show();
     }
+
     // Activate the timer to start processing
     qtimer->start();
 }
@@ -375,12 +403,12 @@ void MainWindow::sourceImageChanged(const QModelIndex &index)
     img = fileModel->fileInfo(index).absoluteFilePath();
 
     // If the source is a video file
-    if(img.endsWith("avi"))
+    if(mode == VIDEO_FILE)
     {
-        capWebcam.open(img.toStdString());
-        qtimer->start();
+        capVideo.open(img.toStdString());
     }
-    processFrameAndUpdate();
+
+    qtimer->start();
 }
 
 
