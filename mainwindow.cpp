@@ -173,14 +173,15 @@ void MainWindow::resetWebcam()
 }
 
 
-cv::Mat drawHist(cv::Mat src, QString s){
+cv::Mat MainWindow::drawHist(cv::Mat src, QString s){
 IplImage temp = src;
 IplImage* image = &temp;
 CvHistogram* hist;
 IplImage* imgHistogram = 0;
 
     //size of the histogram -1D histogram
-         int bins = 256;
+         int bins = 50;
+         int binWidth = 256 / bins;
          int hsize[] = {bins};
 
          //max and min value of the histogram
@@ -211,39 +212,43 @@ IplImage* imgHistogram = 0;
 
          //create an 8 bits single channel image to hold the histogram
          //paint it white
-         imgHistogram = cvCreateImage(cvSize(bins, 50),8,1);
+         imgHistogram = cvCreateImage(cvSize(bins * binWidth, 50),8,1);
          cvRectangle(imgHistogram, cvPoint(0,0), cvPoint(256,50), CV_RGB(255,255,255),-1);
 
          //draw the histogram :P
          for(int i=0; i < bins; i++){
                  value = cvQueryHistValue_1D( hist, i);
                  normalized = cvRound(value*50/max_value);
-                 cvLine(imgHistogram,cvPoint(i,50), cvPoint(i,50-normalized), CV_RGB(0,0,0));
+                 for (int k = 0 ; k < binWidth; k++){
+                     cvLine(imgHistogram,cvPoint(i*binWidth + k,50), cvPoint(i*binWidth + k,50-normalized), CV_RGB(0,0,0));
+                 }
          }
 
 
          //Calculating best threshold value
-int cutoff = 10;
+int cutoff = 2;
 int max = 0;int max_at;
-int bestThreshold=0;
-         for(int i=0; i < bins; i++){
-                 value = cvQueryHistValue_1D( hist, i);
-                 normalized = cvRound(value*50/max_value);
-                 if(normalized > max){
-                    max = normalized;
-                            max_at = i;
-                 }
-         }
-
-         for(int i=max_at; i < bins; i++){
+bestThreshold = 0;
+         // Attemp two at threshold
+// Find the first of the values responisble for the foreground
+int i=0;
+do {
+    value = cvQueryHistValue_1D( hist, i);
+    normalized = cvRound(value*50/max_value);
+    i++;}
+while (normalized < cutoff);
+i--;
+          for(; i < bins; i++){
                  value = cvQueryHistValue_1D( hist, i);
                  normalized = cvRound(value*50/max_value);
                  if(normalized < cutoff){
-                    bestThreshold = i;
+                    bestThreshold = i * binWidth;
                     break;
                  }
          }
-//cvLine(imgHistogram,cvPoint(bestThreshold,50), cvPoint(bestThreshold,50-max), CV_RGB(200,50,75),3);
+
+
+cvLine(imgHistogram,cvPoint(bestThreshold,0), cvPoint(bestThreshold,100), CV_RGB(200,50,75),3);
 
          return cv::Mat(imgHistogram);
 //     cvShowImage(QString(s + "original").toStdString().c_str(), image );
@@ -286,21 +291,120 @@ cv::Mat MainWindow::locatePlate(cv::Mat src) {
         cv::cvtColor(src(*r), temp, CV_BGR2GRAY);
 
         cv::Mat histogram = drawHist(temp, "Pre");
-        cv::threshold(temp, tempProcessed, 80, 255, 0);
+        cv::threshold(temp, tempProcessed, bestThreshold, 256, 0);
         cv::Mat histogramProcessed = drawHist(tempProcessed, "Post");
 
         // Display the histograms on the screen
         cv::cvtColor(histogram, histogram, CV_GRAY2RGB);
         cv::cvtColor(histogramProcessed, histogramProcessed, CV_GRAY2RGB);
 
-        cv::cvtColor(temp, temp, CV_GRAY2RGB);
+ //       cv::cvtColor(temp, temp, CV_GRAY2RGB);
+  //      cv::cvtColor(tempProcessed, tempProcessed, CV_GRAY2RGB);
+
+/*
+        // Start segmenting the letters - this will moved later
+        // set up the parameters (check the defaults in opencv's code in blobdetector.cpp)
+        cv::SimpleBlobDetector::Params params;
+        params.minDistBetweenBlobs = 5.0f;
+        params.filterByInertia = false;
+        params.filterByConvexity = false;
+        params.filterByColor = false;
+        params.filterByCircularity = false;
+        params.filterByArea = true;
+        params.minArea = 10.0f;
+        params.maxArea = 150.0f;
+        // ... any other params you don't want default value
+
+        // set up and create the detector using the parameters
+        cv::Ptr<cv::FeatureDetector> blob_detector = new cv::SimpleBlobDetector(params);
+        blob_detector->create("SimpleBlob");
+
+        // detect!
+        std::vector<cv::KeyPoint> keypoints;
+        blob_detector->detect(tempProcessed, keypoints);
+
+        cv::KeyPoint kp = keypoints.back();
+        cv::drawKeypoints(tempProcessed, keypoints, tempProcessed);
+
+       */
+        // ***************** //
+
+
+        /*
+        //Linked list of connected pixel sequences in a binary image
+        CvSeq* seq;
+
+        //Array of bounding boxes
+        std::vector<CvRect> boxes;
+
+        //Memory allocated for OpenCV function operations
+        CvMemStorage* storage = cvCreateMemStorage(0);
+        cvClearMemStorage(storage);
+
+        IplImage img_temp = (IplImage)tempProcessed;
+        //Find connected pixel sequences within a binary OpenGL image (diff), starting at the top-left corner (0,0)
+        cvFindContours(&img_temp, storage, &seq, sizeof(CvContour), CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE, cvPoint(0,0));
+
+        //Iterate through segments
+        for(; seq; seq = seq->h_next) {
+                //Find minimal bounding box for each sequence
+            CvRect boundbox = cvBoundingRect(seq);
+            boxes.push_back(boundbox);
+        }
+
+        for (int i =0; i < boxes.size(); i++)
+            cv::rectangle(tempProcessed, boxes[i], 0);
+
+  cv::cvtColor(temp, temp, CV_GRAY2RGB);
         cv::cvtColor(tempProcessed, tempProcessed, CV_GRAY2RGB);
+*/
+// ******************************************** //
+
+        int thresh = 100;
+       cv::Mat src_gray = tempProcessed;
+
+        // Another attempt
+        cv::Mat threshold_output;
+         std::vector< std::vector<cv::Point> > contours;
+         std::vector<cv::Vec4i> hierarchy;
+
+         /// Detect edges using Threshold
+         cv::threshold( src_gray, threshold_output, thresh, 255, cv::THRESH_BINARY );
+         /// Find contours
+         cv::findContours( threshold_output, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, cv::Point(0, 0) );
+
+         /// Approximate contours to polygons + get bounding rects and circles
+         std::vector< std::vector<cv::Point> > contours_poly( contours.size() );
+         std::vector<cv::Rect> boundRect( contours.size() );
+         std::vector<cv::Point2f>center( contours.size() );
+         std::vector<float>radius( contours.size() );
+
+         for( int i = 0; i < contours.size(); i++ )
+            { cv::approxPolyDP( cv::Mat(contours[i]), contours_poly[i], 3, true );
+              boundRect[i] = cv::boundingRect( cv::Mat(contours_poly[i]) );
+              cv::minEnclosingCircle( contours_poly[i], center[i], radius[i] );
+            }
+
+
+         /// Draw polygonal contour + bonding rects + circles
+         cv::Mat drawing = cv::Mat::zeros( threshold_output.size(), CV_8UC3 );
+         for( int i = 0; i< contours.size(); i++ )
+            {
+             // cv::Scalar color = cv::Scalar ( cv::RNG.uniform(0, 255), cv::RNG.uniform(0,255), cv::RNG.uniform(0,255) );
+              cv::Scalar color = cv::Scalar (0, 0, 0);
+              cv::drawContours( drawing, contours_poly, i, color, 1, 8, std::vector< cv::Vec4i>(), 0, cv::Point() );
+              color = cv::Scalar (200, 20, 20);
+              cv::drawContours( drawing, contours_poly, i, color, 1, 8, std::vector< cv::Vec4i>(), 0, cv::Point() );
+              cv::rectangle( drawing, boundRect[i].tl(), boundRect[i].br(), color, 1, 8, 0 );
+           //   cv::circle( drawing, center[i], (int)radius[i], color, 2, 8, 0 );
+            }
+
+         tempProcessed = drawing;
 
         QImage qimgHist((uchar*)histogram.data, histogram.cols, histogram.rows, histogram.step, QImage::Format_RGB888);
         QImage qimgHistProcessed((uchar*)histogramProcessed.data, histogramProcessed.cols, histogramProcessed.rows, histogramProcessed.step, QImage::Format_RGB888);
         QImage qimgPlate((uchar*)temp.data, temp.cols, temp.rows, temp.step, QImage::Format_RGB888);
         QImage qimgPlateProcessed((uchar*)tempProcessed.data, tempProcessed.cols, tempProcessed.rows, tempProcessed.step, QImage::Format_RGB888);
-
 
 
         //qimgHist = qimgHist.scaledToWidth(320);

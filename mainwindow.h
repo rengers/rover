@@ -56,6 +56,7 @@ private slots:
 
 public slots:
     void processFrameAndUpdate();
+    cv::Mat drawHist(cv::Mat src, QString s);
     void updateInfo();
 
 private:
@@ -66,6 +67,9 @@ private:
     cv::VideoCapture capVideo;
     cv::Mat matOriginal;
     cv::Mat matProcessed;
+
+    // OpenCV values
+    int bestThreshold;
 
     // Images stored in QImage object
     QImage qimgOriginal;
