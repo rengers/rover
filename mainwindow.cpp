@@ -271,7 +271,8 @@ cv::Mat MainWindow::locatePlate(cv::Mat src) {
 
     cv::Mat dest;
     cv::cvtColor(src, src, CV_RGB2BGR);
-    cv::cvtColor(src, dest, CV_BGR2GRAY);
+//    cv::cvtColor(src, dest, CV_BGR2GRAY);
+dest = src.clone();
 
     cv::CascadeClassifier plateLocator;
     plateLocator.load("Numberplate.xml");
@@ -291,14 +292,14 @@ cv::Mat MainWindow::locatePlate(cv::Mat src) {
         cv::cvtColor(src(*r), temp, CV_BGR2GRAY);
 
         cv::Mat histogram = drawHist(temp, "Pre");
-        cv::threshold(temp, tempProcessed, bestThreshold, 256, 0);
+        cv::threshold(temp, tempProcessed, bestThreshold + 20, 256, cv::THRESH_OTSU);
         cv::Mat histogramProcessed = drawHist(tempProcessed, "Post");
 
         // Display the histograms on the screen
         cv::cvtColor(histogram, histogram, CV_GRAY2RGB);
         cv::cvtColor(histogramProcessed, histogramProcessed, CV_GRAY2RGB);
 
- //       cv::cvtColor(temp, temp, CV_GRAY2RGB);
+        cv::cvtColor(temp, temp, CV_GRAY2RGB);
   //      cv::cvtColor(tempProcessed, tempProcessed, CV_GRAY2RGB);
 
 /*
@@ -388,18 +389,49 @@ cv::Mat MainWindow::locatePlate(cv::Mat src) {
 
          /// Draw polygonal contour + bonding rects + circles
          cv::Mat drawing = cv::Mat::zeros( threshold_output.size(), CV_8UC3 );
+         cv::Rect text;
+         cv::Point tl= cv::Point(drawing.cols / 2, drawing.rows /2 );
+         cv::Point br = cv::Point(drawing.cols / 2, drawing.rows / 2);
          for( int i = 0; i< contours.size(); i++ )
             {
+             // If the contour is the whole plate or smaller than a letter
+             if( boundRect[i].area() > 1500 || boundRect[i].area() < 75)
+                 continue;
+
+             if( boundRect[i].width < 5 || boundRect[i].width > 40)
+                 continue;
+
+             if( boundRect[i].height < 5 || boundRect[i].height > 40)
+                 continue;
+
+             cv::Point new_tl = cv::Point(boundRect[i].tl());
+             cv::Point new_br = cv::Point(boundRect[i].br());
+             tl.x = new_tl.x < tl.x ? new_tl.x : tl.x;
+             tl.y = new_tl.y < tl.y ? new_tl.y : tl.y;
+
+             br.x = new_br.x > br.x ? new_br.x : br.x;
+             br.y = new_br.y > br.y ? new_br.y : br.y;
+
              // cv::Scalar color = cv::Scalar ( cv::RNG.uniform(0, 255), cv::RNG.uniform(0,255), cv::RNG.uniform(0,255) );
               cv::Scalar color = cv::Scalar (0, 0, 0);
-              cv::drawContours( drawing, contours_poly, i, color, 1, 8, std::vector< cv::Vec4i>(), 0, cv::Point() );
-              color = cv::Scalar (200, 20, 20);
-              cv::drawContours( drawing, contours_poly, i, color, 1, 8, std::vector< cv::Vec4i>(), 0, cv::Point() );
+      //        cv::drawContours( drawing, contours_poly, i, color, 1, 8, std::vector< cv::Vec4i>(), 0, cv::Point() );
+              color = cv::Scalar (rand()&200 + 50, rand()&200 + 50, rand()&200 + 50);
+           //   cv::drawContours( drawing, contours_poly, i, color, 1, 8, std::vector< cv::Vec4i>(), 0, cv::Point() );
               cv::rectangle( drawing, boundRect[i].tl(), boundRect[i].br(), color, 1, 8, 0 );
            //   cv::circle( drawing, center[i], (int)radius[i], color, 2, 8, 0 );
             }
 
-         tempProcessed = drawing;
+         for (int i =0;i < contours.size(); i++){
+       //     cv::rectangle(tempProcessed, boundRect[i], 0);
+            if ( boundRect[i].area() <  1800 && boundRect[i].area() > 20)
+            {
+                char letter_name[20];
+                sprintf(letter_name, "letter%d.jpg", i);
+                cv::imwrite(letter_name, tempProcessed(boundRect[i]));
+            }
+         }
+        cv::cvtColor(tempProcessed, tempProcessed, CV_GRAY2RGB);
+      //   tempProcessed = drawing;
 
         QImage qimgHist((uchar*)histogram.data, histogram.cols, histogram.rows, histogram.step, QImage::Format_RGB888);
         QImage qimgHistProcessed((uchar*)histogramProcessed.data, histogramProcessed.cols, histogramProcessed.rows, histogramProcessed.step, QImage::Format_RGB888);
@@ -418,19 +450,19 @@ cv::Mat MainWindow::locatePlate(cv::Mat src) {
 
         // *************************************************************8
 
-
+        text = cv::Rect(tl, br);
         // Write plate to file plate.jpg
-        cv::imwrite("plate.jpg", tempProcessed);
+        cv::imwrite("plate.jpg", tempProcessed(text));
         // Decode with tesseract
         ui->info->setPlainText("Reading plate...");
-        ocr->start("tesseract plate.jpg plate -psm 3 2>&1 /dev/null");
+        ocr->start("tesseract plate.jpg plate -psm 7 2>&1 /dev/null");
 
-        cv::rectangle(src, *r, cv::Scalar(255, 50, 50),3);
+        cv::rectangle(dest, *r, cv::Scalar(255, 50, 50),3);
     }
 
-
-    cv::cvtColor(src, src, CV_BGR2RGB);
-    return src;
+    // Swap back temp so we avoid the rectangles we draw in the processing
+    cv::cvtColor(dest, dest, CV_BGR2RGB);
+    return dest;
 }
 
 
