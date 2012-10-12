@@ -64,7 +64,7 @@ MainWindow::MainWindow(QWidget *parent) :
     // Set up timer to control update
     qtimer = new QTimer(this);
     connect(qtimer, SIGNAL(timeout()), this, SLOT(processFrameAndUpdate()));
-    qtimer->setInterval(500);
+    qtimer->setInterval(50);
 
     // Start in image mode
     mode = IMAGE_FILE;
@@ -131,7 +131,8 @@ void MainWindow::processFrameAndUpdate() {
     matOriginal.copyTo(matProcessed);
 
     if(blur_on)
-        cv::medianBlur(matOriginal, matProcessed, 3);
+        //cv::medianBlur(matOriginal, matProcessed, 3);
+        cv::GaussianBlur(matOriginal, matProcessed, cv::Size(3,3), 1);
 
     matProcessed = locatePlate(matProcessed);
     //cv::cvtColor(matProcessed, matProcessed, CV_GRAY2RGB);
@@ -208,7 +209,7 @@ IplImage* imgHistogram = 0;
          hist = cvCreateHist( 1, hsize, CV_HIST_ARRAY, ranges,1);
          cvCalcHist( planes, hist, 0, NULL);
          cvGetMinMaxHistValue( hist, &min_value, &max_value);
-         printf("min: %f, max: %f\n", min_value, max_value);
+         //     printf("min: %f, max: %f\n", min_value, max_value);
 
          //create an 8 bits single channel image to hold the histogram
          //paint it white
@@ -364,6 +365,14 @@ dest = src.clone();
         int thresh = 100;
        cv::Mat src_gray = tempProcessed;
 
+       int erosion_size = 1;
+        cv::Mat element = cv::getStructuringElement(cv::MORPH_CROSS,
+                              cv::Size(2 * erosion_size + 1, 2 * erosion_size + 1),
+                              cv::Point(erosion_size, erosion_size) );
+
+       // Morphological erode and dilate
+         cv::erode(src_gray, src_gray, element);
+         cv::dilate(src_gray, src_gray, element);
         // Another attempt
         cv::Mat threshold_output;
          std::vector< std::vector<cv::Point> > contours;
@@ -392,18 +401,31 @@ dest = src.clone();
          cv::Rect text;
          cv::Point tl= cv::Point(drawing.cols / 2, drawing.rows /2 );
          cv::Point br = cv::Point(drawing.cols / 2, drawing.rows / 2);
+
+         int char_width_min = src_gray.cols / 15;
+         int char_width_max = src_gray.cols / 4;
+         int char_height_min = src_gray.rows * (2 / 3.0);
+         int char_height_max = src_gray.rows * (99 / 100.0);
+         int max_area = src_gray.rows * src_gray.cols * (1/5.0);
+         int min_area = src_gray.rows * src_gray.cols * (1/1000.0);
+
+         // Prints out the min max heights of chars
+       //  qDebug() << "charw:"<<char_width_min <<", charh:"<<char_height_min;
+       //  qDebug() << "char_max:"<<max_area <<", char_min:"<<min_area;
+       //  qDebug() << "conturs found:"<< contours.size();
          for( int i = 0; i< contours.size(); i++ )
             {
              // If the contour is the whole plate or smaller than a letter
-             if( boundRect[i].area() > 1500 || boundRect[i].area() < 75)
+             if( boundRect[i].area() > max_area || boundRect[i].area() < min_area)
                  continue;
 
-             if( boundRect[i].width < 5 || boundRect[i].width > 40)
+             if( boundRect[i].width < char_width_min || boundRect[i].width > char_width_max)
                  continue;
 
-             if( boundRect[i].height < 5 || boundRect[i].height > 40)
+             if( boundRect[i].height < char_height_min || boundRect[i].height > char_height_max)
                  continue;
 
+             // Update the bounding box containg the text
              cv::Point new_tl = cv::Point(boundRect[i].tl());
              cv::Point new_br = cv::Point(boundRect[i].br());
              tl.x = new_tl.x < tl.x ? new_tl.x : tl.x;
@@ -411,19 +433,26 @@ dest = src.clone();
 
              br.x = new_br.x > br.x ? new_br.x : br.x;
              br.y = new_br.y > br.y ? new_br.y : br.y;
+             // ***************************************** //
 
              // cv::Scalar color = cv::Scalar ( cv::RNG.uniform(0, 255), cv::RNG.uniform(0,255), cv::RNG.uniform(0,255) );
               cv::Scalar color = cv::Scalar (0, 0, 0);
-      //        cv::drawContours( drawing, contours_poly, i, color, 1, 8, std::vector< cv::Vec4i>(), 0, cv::Point() );
-              color = cv::Scalar (rand()&200 + 50, rand()&200 + 50, rand()&200 + 50);
-           //   cv::drawContours( drawing, contours_poly, i, color, 1, 8, std::vector< cv::Vec4i>(), 0, cv::Point() );
+
+              // Draw contours on to drawing
+              //cv::drawContours( drawing, contours_poly, i, color, 1, 8, std::vector< cv::Vec4i>(), 0, cv::Point() );
+
+              //color = cv::Scalar (rand()&200 + 50, rand()&200 + 50, rand()&200 + 50);
+
+              //coment out
+              //cv::drawContours( drawing, contours_poly, i, color, 1, 8, std::vector< cv::Vec4i>(), 0, cv::Point() );
+
               cv::rectangle( drawing, boundRect[i].tl(), boundRect[i].br(), color, 1, 8, 0 );
            //   cv::circle( drawing, center[i], (int)radius[i], color, 2, 8, 0 );
             }
 
          for (int i =0;i < contours.size(); i++){
-       //     cv::rectangle(tempProcessed, boundRect[i], 0);
-            if ( boundRect[i].area() <  1800 && boundRect[i].area() > 20)
+         //   cv::rectangle(tempProcessed, boundRect[i], 0);
+            if ( boundRect[i].area() <  max_area && boundRect[i].area() > min_area)
             {
                 char letter_name[20];
                 sprintf(letter_name, "letter%d.jpg", i);
@@ -431,7 +460,8 @@ dest = src.clone();
             }
          }
         cv::cvtColor(tempProcessed, tempProcessed, CV_GRAY2RGB);
-      //   tempProcessed = drawing;
+        // Uncomment for contour drawing on image
+       //  tempProcessed = drawing;
 
         QImage qimgHist((uchar*)histogram.data, histogram.cols, histogram.rows, histogram.step, QImage::Format_RGB888);
         QImage qimgHistProcessed((uchar*)histogramProcessed.data, histogramProcessed.cols, histogramProcessed.rows, histogramProcessed.step, QImage::Format_RGB888);
