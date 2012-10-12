@@ -48,11 +48,13 @@ private slots:
 
     void on_sourceSelect_currentIndexChanged(int index);
 
-    void on_checkBox_stateChanged(int arg1);
-
     void sourceImageChanged(const QModelIndex &index);
 
     void resetWebcam();
+
+    void on_medianBlurCheckbox_stateChanged(int arg1);
+
+    void on_gaussianBlurCheckbox_stateChanged(int arg1);
 
 public slots:
     void processFrameAndUpdate();
@@ -82,7 +84,8 @@ private:
     int mode;
 
     // Median filter blur option
-    int blur_on;
+    int median_blur_on;
+    int gauss_blur_on;
 
     QFileSystemModel *dirModel;
     QFileSystemModel *fileModel;

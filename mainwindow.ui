@@ -206,9 +206,16 @@
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_2">
        <item>
-        <widget class="QCheckBox" name="checkBox">
+        <widget class="QCheckBox" name="medianBlurCheckbox">
          <property name="text">
           <string>Median filter</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="gaussianBlurCheckbox">
+         <property name="text">
+          <string>Gaussian filter</string>
          </property>
         </widget>
        </item>
@@ -236,7 +243,7 @@
      <x>0</x>
      <y>0</y>
      <width>1085</width>
-     <height>26</height>
+     <height>23</height>
     </rect>
    </property>
   </widget>
@@ -246,7 +253,7 @@
   <tabstop>sourceSelect</tabstop>
   <tabstop>quit</tabstop>
   <tabstop>pauseOrResume</tabstop>
-  <tabstop>checkBox</tabstop>
+  <tabstop>medianBlurCheckbox</tabstop>
   <tabstop>info</tabstop>
  </tabstops>
  <resources/>

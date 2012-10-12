@@ -52,6 +52,9 @@ MainWindow::MainWindow(QWidget *parent) :
     sourceImage->setRootIndex(idx);
     //sourceImage->hide();
 
+    // Start with pre-processors off
+    median_blur_on = 0;
+    gauss_blur_on = 0;
     // ui->sourceImage->setEditTriggers(QAbstractItemView::AnyKeyPressed | QAbstractItemView::DoubleClicked);
 
     setWindowTitle(tr("Rover"));
@@ -130,8 +133,10 @@ void MainWindow::processFrameAndUpdate() {
     // Make a copy of the matrix to process
     matOriginal.copyTo(matProcessed);
 
-    if(blur_on)
-        //cv::medianBlur(matOriginal, matProcessed, 3);
+    // Perform pre processors that are selected
+    if(median_blur_on)
+        cv::medianBlur(matOriginal, matProcessed, 3);
+    if(gauss_blur_on)
         cv::GaussianBlur(matOriginal, matProcessed, cv::Size(3,3), 1);
 
     matProcessed = locatePlate(matProcessed);
@@ -555,13 +560,6 @@ void MainWindow::on_sourceSelect_currentIndexChanged(int index)
     qtimer->start();
 }
 
-void MainWindow::on_checkBox_stateChanged(int arg1)
-{
-   blur_on = arg1;
-
-   // Activate the timer to start processing
-   qtimer->start();
-}
 
 void MainWindow::sourceImageChanged(const QModelIndex &index)
 {
@@ -578,3 +576,21 @@ void MainWindow::sourceImageChanged(const QModelIndex &index)
 }
 
 
+
+void MainWindow::on_medianBlurCheckbox_stateChanged(int arg1)
+{
+   median_blur_on = arg1;
+
+   // Activate the timer to start processing
+   qtimer->start();
+
+}
+
+void MainWindow::on_gaussianBlurCheckbox_stateChanged(int arg1)
+{
+
+   gauss_blur_on = arg1;
+
+   // Activate the timer to start processing
+   qtimer->start();
+}
