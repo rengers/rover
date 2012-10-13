@@ -55,6 +55,7 @@ MainWindow::MainWindow(QWidget *parent) :
     // Start with pre-processors off
     median_blur_on = 0;
     gauss_blur_on = 0;
+    erode_dilate_on =0;
     // ui->sourceImage->setEditTriggers(QAbstractItemView::AnyKeyPressed | QAbstractItemView::DoubleClicked);
 
     setWindowTitle(tr("Rover"));
@@ -368,23 +369,30 @@ dest = src.clone();
 // ******************************************** //
 
         int thresh = 100;
-       cv::Mat src_gray = tempProcessed;
+        cv::Mat src_gray = tempProcessed;
 
-       int erosion_size = 1;
-        cv::Mat element = cv::getStructuringElement(cv::MORPH_CROSS,
-                              cv::Size(2 * erosion_size + 1, 2 * erosion_size + 1),
-                              cv::Point(erosion_size, erosion_size) );
+        int erosion_size = 1;
+        cv::Mat element = cv::getStructuringElement(cv::MORPH_RECT,
+                              cv::Size(2 * erosion_size + 1, 2 * erosion_size + 1));//,
+                              //cv::Point(erosion_size, erosion_size) );
 
-       // Morphological erode and dilate
-         cv::erode(src_gray, src_gray, element);
-         cv::dilate(src_gray, src_gray, element);
+
+        // Morphological erode and dilate
+        if(erode_dilate_on){
+            cv::dilate(src_gray, src_gray, cv::Mat());
+            cv::erode(src_gray, src_gray, element);
+         //   cv::dilate(src_gray, src_gray, element);
+        }
+
         // Another attempt
         cv::Mat threshold_output;
-         std::vector< std::vector<cv::Point> > contours;
-         std::vector<cv::Vec4i> hierarchy;
+        std::vector< std::vector<cv::Point> > contours;
+        std::vector<cv::Vec4i> hierarchy;
 
-         /// Detect edges using Threshold
-         cv::threshold( src_gray, threshold_output, thresh, 255, cv::THRESH_BINARY );
+        /// Detect edges using Threshold
+        cv::threshold( src_gray, threshold_output, thresh, 255, cv::THRESH_BINARY );
+
+
          /// Find contours
          cv::findContours( threshold_output, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, cv::Point(0, 0) );
 
@@ -593,4 +601,12 @@ void MainWindow::on_gaussianBlurCheckbox_stateChanged(int arg1)
 
    // Activate the timer to start processing
    qtimer->start();
+}
+
+void MainWindow::on_erodeDilateCheckbox_stateChanged(int arg1)
+{
+    erode_dilate_on = arg1;
+
+    // Activate the timer to start processing
+    qtimer->start();
 }

@@ -56,6 +56,8 @@ private slots:
 
     void on_gaussianBlurCheckbox_stateChanged(int arg1);
 
+    void on_erodeDilateCheckbox_stateChanged(int arg1);
+
 public slots:
     void processFrameAndUpdate();
     cv::Mat drawHist(cv::Mat src, QString s);
@@ -83,9 +85,10 @@ private:
     // Input mode
     int mode;
 
-    // Median filter blur option
+    // Preprocessor options
     int median_blur_on;
     int gauss_blur_on;
+    int erode_dilate_on;
 
     QFileSystemModel *dirModel;
     QFileSystemModel *fileModel;
