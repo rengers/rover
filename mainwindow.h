@@ -74,6 +74,7 @@ private:
 
     // OpenCV values
     int bestThreshold;
+    int thresholdValue;
 
     // Images stored in QImage object
     QImage qimgOriginal;

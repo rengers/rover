@@ -40,7 +40,7 @@ MainWindow::MainWindow(QWidget *parent) :
     fileModel->setNameFilterDisables(false);
 
     QString sPath = QDir::currentPath();
-    QModelIndex idx = fileModel->setRootPath(sPath.append("/img"));
+    QModelIndex idx = fileModel->setRootPath(sPath.append("/img2"));
 
     QGridLayout* layout = new QGridLayout();
     sourceImage = new MediaBrowserQListView(this);
@@ -254,7 +254,7 @@ i--;
                  }
          }
 
-
+bestThreshold = thresholdValue;
 cvLine(imgHistogram,cvPoint(bestThreshold,0), cvPoint(bestThreshold,100), CV_RGB(200,50,75),3);
 
          return cv::Mat(imgHistogram);
@@ -299,7 +299,8 @@ dest = src.clone();
         cv::cvtColor(src(*r), temp, CV_BGR2GRAY);
 
         cv::Mat histogram = drawHist(temp, "Pre");
-        cv::threshold(temp, tempProcessed, bestThreshold + 20, 256, cv::THRESH_OTSU);
+        thresholdValue = cv::threshold(temp, tempProcessed, bestThreshold + 20, 256, cv::THRESH_OTSU);
+
         cv::Mat histogramProcessed = drawHist(tempProcessed, "Post");
 
         // Display the histograms on the screen
@@ -417,7 +418,7 @@ dest = src.clone();
 
          int char_width_min = src_gray.cols / 15;
          int char_width_max = src_gray.cols / 4;
-         int char_height_min = src_gray.rows * (2 / 3.0);
+         int char_height_min = src_gray.rows * (4 / 7.0);
          int char_height_max = src_gray.rows * (99 / 100.0);
          int max_area = src_gray.rows * src_gray.cols * (1/5.0);
          int min_area = src_gray.rows * src_gray.cols * (1/1000.0);
