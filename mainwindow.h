@@ -58,6 +58,8 @@ private slots:
 
     void on_erodeDilateCheckbox_stateChanged(int arg1);
 
+    void on_runTestsButon_clicked();
+
 public slots:
     void processFrameAndUpdate();
     cv::Mat drawHist(cv::Mat src, QString s);
@@ -90,6 +92,8 @@ private:
     int median_blur_on;
     int gauss_blur_on;
     int erode_dilate_on;
+
+    int run_tests;
 
     QFileSystemModel *dirModel;
     QFileSystemModel *fileModel;

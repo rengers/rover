@@ -40,7 +40,7 @@ MainWindow::MainWindow(QWidget *parent) :
     fileModel->setNameFilterDisables(false);
 
     QString sPath = QDir::currentPath();
-    QModelIndex idx = fileModel->setRootPath(sPath.append("/img"));
+    QModelIndex idx = fileModel->setRootPath(sPath.append("/img2"));
 
     QGridLayout* layout = new QGridLayout();
     sourceImage = new MediaBrowserQListView(this);
@@ -57,6 +57,8 @@ MainWindow::MainWindow(QWidget *parent) :
     gauss_blur_on = 0;
     erode_dilate_on =0;
     // ui->sourceImage->setEditTriggers(QAbstractItemView::AnyKeyPressed | QAbstractItemView::DoubleClicked);
+
+    run_tests = 0;
 
     setWindowTitle(tr("Rover"));
 
@@ -128,6 +130,7 @@ void MainWindow::processFrameAndUpdate() {
         return;
 
     cv::resize(matOriginal, matOriginal, cv::Size(640, 480));
+    //cv::resize(matOriginal, matOriginal, cv::Size(320, 240));
 
     //cv::GaussianBlur(matOriginal, matProcessed, cv::Size(9,9), 1.5);
 
@@ -159,6 +162,7 @@ void MainWindow::processFrameAndUpdate() {
     if(mode == IMAGE_FILE)
         qtimer->stop();
 
+    run_tests=0;
 }
 
 // Method to reset the feed from the webcam
@@ -499,8 +503,8 @@ dest = src.clone();
         cv::imwrite("plate.jpg", tempProcessed(text));
         // Decode with tesseract
         ui->info->setPlainText("Reading plate...");
-        ocr->start("tesseract plate.jpg plate -psm 7 numberplate 2>&1 /dev/null");
-        //ocr->start("cuneiform -o plate.txt plate.jpg");
+       // ocr->start("tesseract plate.jpg plate -psm 7 numberplate 2>&1 /dev/null");
+        ocr->start("cuneiform -o plate.txt plate.jpg");
 
         cv::rectangle(dest, *r, cv::Scalar(255, 50, 50),3);
     }
@@ -519,7 +523,10 @@ void MainWindow::updateInfo()
     QTextStream stream(&file);
     QString text = stream.readLine();
     if(text.trimmed() != "")
+    {
+        text.remove(QRegExp("[^ a-zA-Z\\d\\s]"));
         ui->info->setPlainText(text);
+    }
     else
         ui->info->setPlainText("Could not read plate");
     file.close();
@@ -611,4 +618,37 @@ void MainWindow::on_erodeDilateCheckbox_stateChanged(int arg1)
 
     // Activate the timer to start processing
     qtimer->start();
+}
+
+void MainWindow::on_runTestsButon_clicked()
+{
+    run_tests = 1;
+    // Start running tests on all files in this folder
+    QString sPath = QDir::currentPath();
+    QDir myDir(sPath.append("/img3_ca"));
+
+int count =0;
+    QFileInfoList list = myDir.entryInfoList(QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot);
+    foreach(QFileInfo finfo, list) {
+        img =  finfo.absoluteFilePath();
+        processFrameAndUpdate();
+        ocr->waitForFinished();
+
+        QString detected = ui->info->toPlainText();
+        detected.toUpper();
+        // Just to be safe remove any extra chars that may have been added
+        detected.remove(QRegExp("[^ a-zA-Z\\d\\s]"));
+        qDebug() << "Detected:" + detected;
+        qDebug() << "Actual:" + finfo.baseName();
+        if(finfo.baseName() == detected){
+            count++;
+            qDebug() << "hit!";
+        }
+        else
+            qDebug() << "miss";
+        }
+
+        // Check if the result was correct
+        qDebug() << "Finished!" << "Total hits:" << count;
+
 }
