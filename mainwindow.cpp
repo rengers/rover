@@ -587,9 +587,11 @@ void MainWindow::sourceImageChanged(const QModelIndex &index)
     if(mode == VIDEO_FILE)
     {
         capVideo.open(img.toStdString());
+    qtimer->start();
+    return;
     }
 
-    qtimer->start();
+   processFrameAndUpdate();
 }
 
 
