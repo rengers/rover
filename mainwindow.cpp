@@ -40,7 +40,7 @@ MainWindow::MainWindow(QWidget *parent) :
     fileModel->setNameFilterDisables(false);
 
     QString sPath = QDir::currentPath();
-    QModelIndex idx = fileModel->setRootPath(sPath.append("/img2"));
+    QModelIndex idx = fileModel->setRootPath(sPath.append("/img"));
 
     QGridLayout* layout = new QGridLayout();
     sourceImage = new MediaBrowserQListView(this);
@@ -138,7 +138,7 @@ void MainWindow::processFrameAndUpdate() {
     if(median_blur_on)
         cv::medianBlur(matOriginal, matProcessed, 3);
     if(gauss_blur_on)
-        cv::GaussianBlur(matOriginal, matProcessed, cv::Size(3,3), 1);
+        cv::GaussianBlur(matProcessed, matProcessed, cv::Size(3,3), 1);
 
     matProcessed = locatePlate(matProcessed);
     //cv::cvtColor(matProcessed, matProcessed, CV_GRAY2RGB);
@@ -416,10 +416,10 @@ dest = src.clone();
          cv::Point tl= cv::Point(drawing.cols / 2, drawing.rows /2 );
          cv::Point br = cv::Point(drawing.cols / 2, drawing.rows / 2);
 
-         int char_width_min = src_gray.cols / 15;
+         int char_width_min = src_gray.cols / 17;
          int char_width_max = src_gray.cols / 4;
          int char_height_min = src_gray.rows * (4 / 7.0);
-         int char_height_max = src_gray.rows * (99 / 100.0);
+         int char_height_max = src_gray.rows * (95 / 100.0);
          int max_area = src_gray.rows * src_gray.cols * (1/5.0);
          int min_area = src_gray.rows * src_gray.cols * (1/1000.0);
 
@@ -499,7 +499,8 @@ dest = src.clone();
         cv::imwrite("plate.jpg", tempProcessed(text));
         // Decode with tesseract
         ui->info->setPlainText("Reading plate...");
-        ocr->start("tesseract plate.jpg plate -psm 7 2>&1 /dev/null");
+        ocr->start("tesseract plate.jpg plate -psm 7 numberplate 2>&1 /dev/null");
+        //ocr->start("cuneiform -o plate.txt plate.jpg");
 
         cv::rectangle(dest, *r, cv::Scalar(255, 50, 50),3);
     }
