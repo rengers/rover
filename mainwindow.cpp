@@ -40,7 +40,8 @@ MainWindow::MainWindow(QWidget *parent) :
     fileModel->setNameFilterDisables(false);
 
     QString sPath = QDir::currentPath();
-    QModelIndex idx = fileModel->setRootPath(sPath.append("/img2"));
+    //QModelIndex idx = fileModel->setRootPath(sPath.append("/img3_ca"));
+    QModelIndex idx = fileModel->setRootPath(sPath.append("/img3_ca"));
 
     QGridLayout* layout = new QGridLayout();
     sourceImage = new MediaBrowserQListView(this);
@@ -420,7 +421,7 @@ dest = src.clone();
          cv::Point tl= cv::Point(drawing.cols / 2, drawing.rows /2 );
          cv::Point br = cv::Point(drawing.cols / 2, drawing.rows / 2);
 
-         int char_width_min = src_gray.cols / 17;
+         int char_width_min = src_gray.cols / 27;
          int char_width_max = src_gray.cols / 4;
          int char_height_min = src_gray.rows * (4 / 7.0);
          int char_height_max = src_gray.rows * (95 / 100.0);
@@ -524,7 +525,7 @@ void MainWindow::updateInfo()
     QString text = stream.readLine();
     if(text.trimmed() != "")
     {
-        text.remove(QRegExp("[^ a-zA-Z\\d\\s]"));
+        text.remove(QRegExp("[^a-zA-Z\\d\]"));
         ui->info->setPlainText(text);
     }
     else
@@ -639,7 +640,7 @@ int count =0;
         QString detected = ui->info->toPlainText();
         detected.toUpper();
         // Just to be safe remove any extra chars that may have been added
-        detected.remove(QRegExp("[^ a-zA-Z\\d\\s]"));
+        detected.remove(QRegExp("[^a-zA-Z\\d\]"));
         qDebug() << "Detected:" + detected;
         qDebug() << "Actual:" + finfo.baseName();
         if(finfo.baseName() == detected){
